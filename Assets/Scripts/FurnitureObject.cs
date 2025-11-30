@@ -195,29 +195,15 @@ public class FurnitureObject : MonoBehaviour
 
         // Calculate total distance from original position to ghost target
         float totalDistance = Vector3.Distance(originalPosition, ghostTargetPosition);
-        
+
         if (totalDistance < 0.001f)
-            return 1f; // Same position, return max (will be reversed to min)
+            return 0f; // Same position, return max (will be reversed to min)
 
-        // Calculate how far ghost has moved from its start position
-        float ghostDistance = Vector3.Distance(ghostStartPosition, ghostTargetPosition);
-        float ghostCurrentDistance = Vector3.Distance(ghostStartPosition, ghostTransform.position);
-        float ghostProgress = ghostDistance > 0.001f ? Mathf.Clamp01(ghostCurrentDistance / ghostDistance) : 1f;
+        float furnitureDistance = Vector3.Distance(ghostTransform.position, transform.position);
 
-        // Calculate how far furniture has moved toward ghost target
-        Vector3 currentPos = transform.position;
-        Vector3 targetDirection = ghostTargetPosition - originalPosition;
-        Vector3 currentDirection = currentPos - originalPosition;
-        float dotProduct = Vector3.Dot(currentDirection, targetDirection.normalized);
-        float furnitureProgress = Mathf.Clamp01(dotProduct / totalDistance);
+        float furnitureProgress = furnitureDistance / totalDistance;
 
-        // Combine progress: ghost movement + furniture movement
-        // When ghost just spawned (0% progress) and furniture at initial (0% progress): combined = 0, return 1.0 (reversed to 0.0 = minimum) ✓
-        // When ghost at target (100% progress) and furniture at initial (0% progress): combined = 0.5, return 0.5 (reversed to 0.5)
-        // When ghost at target (100% progress) and furniture at ghost (100% progress): combined = 1.0, return 0.0 (reversed to 1.0 = maximum) ✓
-        
-        // Weight: 50% for ghost movement, 50% for furniture movement
-        float combinedProgress = (ghostProgress * 0.5f) + (furnitureProgress * 0.5f);
-        return 1f - combinedProgress;
+
+        return furnitureProgress;
     }
 }
