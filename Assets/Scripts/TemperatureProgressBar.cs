@@ -9,8 +9,7 @@ public class TemperatureProgressBar : MonoBehaviour
     private void Update()
     {
         // Update slider based on temperature level (0 = min temp, 1 = max temp)
-        float temperaturePercentage = TemperatureManager.TemperaturePercentage;
+        float temperaturePercentage = TemperatureManager.Instance.CurrentTemperatureLevel / TemperatureManager.Instance.MaxTemperature;
         progressSlider.value = temperaturePercentage;
     }
 }
-

@@ -23,6 +23,8 @@ public class WindowObject : MonoBehaviour
     private float holdTimer = 0f;
     private Coroutine temperatureCycleCoroutine;
 
+    private float _openSpeedMultiplier = 1;
+
     private void Awake()
     {
         sr = GetComponent<SpriteRenderer>();
@@ -30,12 +32,38 @@ public class WindowObject : MonoBehaviour
             sr = gameObject.AddComponent<SpriteRenderer>();
         
         sr.sprite = closedSprite;
+
+    // Calculate _openSpeedMultiplier to match openHoldDuration to the length of the opening animation (if available)
+    if (windowAnimator != null && windowAnimator.runtimeAnimatorController != null)
+    {
+        try
+        {
+            // Assume opening animation is at layer 0, state 0
+            AnimatorStateInfo stateInfo = windowAnimator.GetCurrentAnimatorStateInfo(0);
+            // However, at Awake the animator might not have proper state info yet, so prefer clip length
+            if (windowAnimator.runtimeAnimatorController.animationClips.Length > 0)
+            {
+                AnimationClip openClip = windowAnimator.runtimeAnimatorController.animationClips[0];
+                float animationLength = openClip.length;
+                if (animationLength > 0f)
+                {
+                    _openSpeedMultiplier = animationLength / openHoldDuration;
+                }
+            }
+        }
+        catch
+        {
+            // Fallback to default if anything fails
+            _openSpeedMultiplier = 1f;
+        }
+    }
+
     }
 
     private void Start()
     {
         // Initialize temperature to 0
-        TemperatureManager.SetTemperature(0f);
+        TemperatureManager.Instance.SetTemperature(0f);
         // Start temperature cycle
         StartTemperatureCycle();
         
@@ -68,7 +96,7 @@ public class WindowObject : MonoBehaviour
             if (tKeyHeld)
             {
                 // Keep SpeedMultiplier at 1 (opening)
-                SetSpeedMultiplier(1f);
+                SetSpeedMultiplier(_openSpeedMultiplier);
                 holdTimer += Time.deltaTime;
 
                 // Check if opening animation has completed
@@ -109,7 +137,7 @@ public class WindowObject : MonoBehaviour
         {
             Debug.Log("T key pressed - starting window opening");
             // Start opening animation (SpeedMultiplier = 1)
-            SetSpeedMultiplier(1f);
+            SetSpeedMultiplier(_openSpeedMultiplier);
             isOpening = true;
             holdTimer = 0f;
         }
@@ -247,17 +275,18 @@ public class WindowObject : MonoBehaviour
             {
                 // Window is open: decrease temperature to minimum over 5 seconds
                 float elapsed = 0f;
-                float startTemp = TemperatureManager.TemperatureLevel;
+                float startTemp = TemperatureManager.Instance.CurrentTemperatureLevel;
 
                 while (elapsed < temperatureDecreaseDuration)
                 {
                     elapsed += Time.deltaTime;
                     float t = elapsed / temperatureDecreaseDuration;
-                    TemperatureManager.SetTemperature(Mathf.Lerp(startTemp, 0f, t));
+                    TemperatureManager.Instance.SetTemperature(Mathf.Lerp(startTemp, 0f, t));
+                    Debug.Log("Temperature: " + TemperatureManager.Instance.CurrentTemperatureLevel);
                     yield return null;
                 }
 
-                TemperatureManager.SetTemperature(0f);
+                TemperatureManager.Instance.SetTemperature(0f);
 
                 // Stay at minimum for 5 seconds
                 yield return new WaitForSeconds(temperatureMinDuration);
@@ -269,7 +298,7 @@ public class WindowObject : MonoBehaviour
             {
                 // Window is closed: temperature increases continuously
                 // This runs every frame while closed
-                TemperatureManager.IncreaseTemperature(Time.deltaTime);
+                TemperatureManager.Instance.IncreaseTemperature(Time.deltaTime);
                 yield return null;
             }
         }

@@ -6,8 +6,9 @@ public class TemperatureOverlay : MonoBehaviour
     [Header("Overlay Settings")]
     public Image overlayImage;
     public Color overlayColor = new Color(1f, 1f, 0f, 0.5f); // Yellow with 50% transparency
-    public float minTemperatureToShow = 10f; // Show overlay when temperature is above this
-    public float maxTemperatureForFullOpacity = 100f; // Full opacity at this temperature
+    public float maxOpacity = 0.3f;
+    public float minTemperatureToShow = 0.1f; // Show overlay when temperature is above this
+    public float maxTemperatureForFullOpacity = 1f; // Full opacity at this temperature
 
     private void Start()
     {
@@ -24,18 +25,18 @@ public class TemperatureOverlay : MonoBehaviour
         if (overlayImage == null)
             return;
 
-        float currentTemperature = TemperatureManager.TemperatureLevel;
+        float CurentTempeparutePercentage = TemperatureManager.Instance.CurrentTemperatureLevel / TemperatureManager.Instance.MaxTemperature;
         
         // Show overlay when temperature is above minimum threshold
-        if (currentTemperature > minTemperatureToShow)
+        if (CurentTempeparutePercentage > minTemperatureToShow)
         {
             // Calculate opacity based on temperature
             // Linear interpolation from minTemperatureToShow (0 opacity) to maxTemperatureForFullOpacity (full opacity)
             float temperatureRange = maxTemperatureForFullOpacity - minTemperatureToShow;
-            float normalizedTemp = Mathf.Clamp01((currentTemperature - minTemperatureToShow) / temperatureRange);
+            float normalizedTemp = Mathf.Clamp01((CurentTempeparutePercentage - minTemperatureToShow) / temperatureRange);
             
             // Set overlay color with calculated opacity
-            float opacity = overlayColor.a * normalizedTemp;
+            float opacity = maxOpacity * normalizedTemp;
             overlayImage.color = new Color(overlayColor.r, overlayColor.g, overlayColor.b, opacity);
             overlayImage.enabled = true;
         }
