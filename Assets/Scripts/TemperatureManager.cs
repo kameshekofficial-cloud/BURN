@@ -7,6 +7,7 @@ public class TemperatureManager : MonoBehaviour
     public float MaxTemperature => maxTemperature;
     [SerializeField] private float maxTemperature = 100f;
     [SerializeField] private float timeToMaxTemperature = 3f;
+    [SerializeField] private float startingTemperature = 0f; // Starting temperature level (0 to maxTemperature)
     private float increaseRate => maxTemperature/timeToMaxTemperature; // temperature increase per second when window is closed
     public float CurrentTemperatureLevel { get; private set; } = 0f;
 
@@ -14,7 +15,8 @@ public class TemperatureManager : MonoBehaviour
     {
         _instance = this;
 
-        CurrentTemperatureLevel = 0f;
+        // Initialize with starting temperature (clamped to valid range)
+        CurrentTemperatureLevel = Mathf.Clamp(startingTemperature, 0f, maxTemperature);
     }
 
     public void SetTemperature(float value)

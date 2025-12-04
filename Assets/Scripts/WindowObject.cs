@@ -62,8 +62,7 @@ public class WindowObject : MonoBehaviour
 
     private void Start()
     {
-        // Initialize temperature to 0
-        TemperatureManager.Instance.SetTemperature(0f);
+        // Temperature is already initialized by TemperatureManager with starting temperature
         // Start temperature cycle
         StartTemperatureCycle();
         
@@ -120,16 +119,22 @@ public class WindowObject : MonoBehaviour
                 holdTimer = 0f;
             }
             
-            // Check if closing animation has completed (when T was released early)
-            if (!isOpening && !isOpen)
+            // Only return early if we're still in the opening process
+            // If isOpening became false (T released early), allow code to continue to check for new T presses
+            if (isOpening)
             {
-                if (CheckClosingAnimationCompletion())
-                {
-                    // Closing completed, reset state
-                    holdTimer = 0f;
-                }
+                return;
             }
-            return;
+        }
+        
+        // Check if closing animation has completed (when T was released early)
+        if (!isOpening && !isOpen)
+        {
+            if (CheckClosingAnimationCompletion())
+            {
+                // Closing completed, reset state
+                holdTimer = 0f;
+            }
         }
 
         // Window is closed and not opening - check for T key press

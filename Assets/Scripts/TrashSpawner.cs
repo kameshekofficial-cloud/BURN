@@ -14,6 +14,9 @@ public class TrashSpawner : MonoBehaviour
     public float minSpawnTime = 3f;
     public float maxSpawnTime = 7f;
 
+    [Header("Trash Limit")]
+    public int maxTrashCount = 20; // Maximum number of trash objects allowed in the scene
+
     private void Start()
     {
         StartCoroutine(SpawnRoutine());
@@ -26,7 +29,11 @@ public class TrashSpawner : MonoBehaviour
             float waitTime = Random.Range(minSpawnTime, maxSpawnTime);
             yield return new WaitForSeconds(waitTime);
 
-            SpawnTrash();
+            // Only spawn if we haven't reached the maximum
+            if (TrashManager.TrashCount < maxTrashCount)
+            {
+                SpawnTrash();
+            }
         }
     }
 
